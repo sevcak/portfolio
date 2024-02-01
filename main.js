@@ -33,13 +33,20 @@ const camera = new THREE.PerspectiveCamera(
     window.innerWidth / window.innerHeight,
     0.1,
     1000
-    );
-    
-// const orbitControls = new OrbitControls(camera, renderer.domElement);
+);
+camera.position.set(0, 6, 3);
 
-camera.position.set(0, 1.6, 1);
-camera.rotation.set(0, 0, 0);
-// orbitControls.update();
+// Controls
+const orbitControls = new OrbitControls(camera, renderer.domElement);
+orbitControls.update();
+const keysPressed = { }
+document.addEventListener('keydown', (event) => {
+    keysPressed[event.key.toLowerCase()] = true
+}, false);
+document.addEventListener('keyup', (event) => {
+    keysPressed[event.key.toLowerCase()] = false
+}, false);
+
 
 const clock = new THREE.Clock();
 function animate(time) {
@@ -86,3 +93,12 @@ rgbeLoader.load(
         );
     }
 );
+
+const planeGeometry = new THREE.PlaneGeometry(20, 20);
+const planeMaterial = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    side: THREE.DoubleSide
+});
+const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+scene.add(plane);
+plane.rotation.x = -0.5 * Math.PI;
