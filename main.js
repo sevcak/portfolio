@@ -1,15 +1,15 @@
 import './style.css'
 import * as THREE from 'three';
 
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { CharacterControls } from './characterControls';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 
 const gltfLoader = new GLTFLoader();
 const rgbeLoader = new RGBELoader();
-
 
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1;
@@ -50,9 +50,16 @@ document.addEventListener('keyup', (event) => {
 
 const clock = new THREE.Clock();
 function animate(time) {
-    if (animationMixer){
-        animationMixer.update(clock.getDelta(time));
+    let delta = clock.getDelta(time);
+
+    if (animationMixer) {
+        animationMixer.update(delta);
     }
+    if (characterControls) {
+        characterControls.update(delta, keysPressed);
+    }
+
+    orbitControls.update();
 
     renderer.render(scene, camera);
 }
@@ -60,6 +67,8 @@ function animate(time) {
 renderer.setAnimationLoop(animate);
 
 let animationMixer;
+
+let characterControls;
 
 rgbeLoader.load(
     './assets/hdr/graveyard_pathways_1k.hdr',
@@ -77,10 +86,17 @@ rgbeLoader.load(
 
                 animationMixer = new THREE.AnimationMixer(model);
                 const clips = glb.animations;
-                const clip = THREE.AnimationClip.findByName(clips, 'idle');
-                const action = animationMixer.clipAction(clip);
-                action.timeScale = .4;
-                action.play();
+                // const idleClip = THREE.AnimationClip.findByName(clips, 'idle');
+                // idleAction.timeScale = .4;
+                // const idleAction = animationMixer.clipAction(idleClip);
+                // idleAction.play();
+                
+                const animationMap = new Map();
+                clips.forEach((a) => {
+                    animationMap.set(a.name, animationMixer.clipAction(a));
+                });
+
+                characterControls = new CharacterControls(model, animationMixer, animationMap, orbitControls, camera, 'idle');
             },
             // Called while loading is progressing
             (xhr) => {
